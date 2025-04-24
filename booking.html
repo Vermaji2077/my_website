@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Book Flight - Seat Selection</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .seat {
+      width: 50px;
+      height: 50px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .available {
+      background-color: #28a745;
+      color: white;
+    }
+    .booked {
+      background-color: #dc3545;
+      color: white;
+      cursor: not-allowed;
+    }
+    .selected {
+      background-color: #ffc107;
+      color: black;
+    }
+    .row-seats {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+    .seat-map {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="container mt-5">
+  <h2>Select Your Seat</h2>
+  <div id="flight-info" class="mb-3"></div>
+  <div id="seat-map" class="seat-map mb-4"></div>
+
+  <form id="booking-form" class="mb-3">
+    <input type="hidden" name="flight_id">
+    <input type="hidden" name="seat">
+    <div class="mb-3">
+      <input type="text" name="name" class="form-control" placeholder="Passenger Name" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Confirm Booking</button>
+  </form>
+
+  <div id="message"></div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const flight_id = params.get('flight_id');
+  $('input[name="flight_id"]').val(flight_id);
+
+  // Fetch flight details
+  $.post('backend/api.php', { action: 'get_flight_details', flight_id }, function(res) {
+    $('#flight-info').html(`
+      <h4>${res.flight_number} - ${res.airline}</h4>
+      <p>From ${res.origin} to ${res.destination}</p>
+      <p>Departure: ${res.departure_time} | Duration: ${res.duration}</p>
+      <p>Total Seats: ${res.total_seats}</p>
+    `);
+  }, 'json');
+
+  // Fetch available and booked seats
+  $.post('backend/api.php', { action: 'get_seats', flight_id }, function(res) {
+    const seatMap = $('#seat-map');
+    const rows = 6; // Assuming 6 rows for simplicity
+    const seatsPerRow = 5; // Assuming 5 seats per row
+    let rowSeatsHtml = '';
+
+    // Organizing seats into rows
+    for (let i = 1; i <= rows; i++) {
+      rowSeatsHtml += `<div class="row-seats" id="row-${i}">`;
+      for (let j = 1; j <= seatsPerRow; j++) {
+        const seatNumber = `${String.fromCharCode(64 + i)}${j}`; // A1, A2, A3...
+        const seat = res.find(s => s.seat_number === seatNumber) || { is_booked: false };
+
+        const seatClass = seat.is_booked ? 'booked' : 'available';
+        const seatBtn = `<button class="seat ${seatClass}" data-seat="${seatNumber}" ${seat.is_booked ? 'disabled' : ''}>${seatNumber}</button>`;
+
+        rowSeatsHtml += seatBtn;
+      }
+      rowSeatsHtml += '</div>';
+    }
+
+    seatMap.html(rowSeatsHtml);
+
+    // Handle seat selection
+    $('.available').click(function() {
+      $('.seat').removeClass('selected');
+      $(this).addClass('selected');
+      $('input[name="seat"]').val($(this).data('seat'));
+    });
+  }, 'json');
+
+  // Submit booking
+  $('#booking-form').submit(function(e) {
+    e.preventDefault();
+    const data = $(this).serialize() + '&action=book_seat';
+    $.post('backend/api.php', data, function(res) {
+      if (res.success) {
+        window.location.href = `confirmation.html?booking_id=${res.booking_id}`;
+      } else {
+        $('#message').html(`<div class="alert alert-danger">${res.message}</div>`);
+      }
+    }, 'json');
+  });
+</script>
+</body>
+</html>

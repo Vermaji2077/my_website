@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Your Ticket</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+  <div class="card shadow-lg p-4" id="ticket-content">
+    <h2 class="text-center mb-4">🎟️ E-Ticket Confirmation</h2>
+
+    <div class="mb-3">
+      <strong>Booking ID:</strong> <span id="booking-id" class="text-primary"></span>
+    </div>
+    <div class="mb-3">
+      <strong>Payment ID:</strong> <span id="payment-id" class="text-success"></span>
+    </div>
+    <div class="mb-3">
+      <strong>Amount Paid:</strong> ₹<span id="amount">8299</span>
+    </div>
+
+    <div class="alert alert-success mt-4">
+      ✅ Your payment was successful. This ticket serves as your confirmation.
+    </div>
+
+    <div class="text-center">
+      <button class="btn btn-outline-primary mt-3" onclick="downloadTicket()">Download Ticket PDF</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const bookingId = params.get('booking_id') || 'N/A';
+  const paymentId = params.get('payment_id') || 'N/A';
+
+  document.getElementById('booking-id').innerText = bookingId;
+  document.getElementById('payment-id').innerText = paymentId;
+
+  function downloadTicket() {
+    const element = document.getElementById('ticket-content');
+    html2pdf().from(element).set({
+      margin: 1,
+      filename: `ticket_${bookingId}.pdf`,
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).save();
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    max-width: 300px;
+  }
+  label {
+    margin-top: 10px;
+  }
+  input, button {
+    padding: 8px;
+    margin-top: 5px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+  }
+  body { background-color: #f8f9fa; }
